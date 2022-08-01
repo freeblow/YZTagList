@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
+#if __has_include(<YZTagList/YZTagList.h>)
+FOUNDATION_EXPORT double YZTagListVersionNumber;
+FOUNDATION_EXPORT const unsigned char YZTagListVersionString[];
+#endif
 /**
  *  YZTagList高度会自动跟随标题计算，默认标签会自动计算宽度
  */
@@ -27,11 +31,19 @@
  *  标签颜色，默认红色
  */
 @property (nonatomic, strong) UIColor *tagColor;
+/**
+ *  选中标签颜色，默认红色
+ */
+@property (nonatomic, strong) UIColor *tagColorSel;
 
 /**
  *  标签背景颜色
  */
 @property (nonatomic, strong) UIColor *tagBackgroundColor;
+/**
+ *  标签背景颜色选中
+ */
+@property (nonatomic, strong) UIColor *tagBackgroundColorSel;
 
 /**
  *  标签背景图片
@@ -67,6 +79,15 @@
  *  边框颜色
  */
 @property (nonatomic, strong) UIColor *borderColor;
+/**
+ *  选中边框宽度
+ */
+@property (nonatomic, assign) CGFloat borderWidthSel;
+
+/**
+ *  选中边框颜色
+ */
+@property (nonatomic, strong) UIColor *borderColorSel;
 
 /**
  *  获取所有标签
@@ -123,10 +144,11 @@
  *  @param tagStr 标签文字
  */
 - (void)deleteTag:(NSString *)tagStr;
-
+// 删除所有标签
+- (void)deleteAllTags;
 /**
  *  点击标签，执行Block
  */
-@property (nonatomic, strong) void(^clickTagBlock)(NSString *tag);
+@property (nonatomic, strong) void(^clickTagBlock)(NSString *tag, NSInteger index);
 
 @end

@@ -9,6 +9,8 @@
 #import "YZTagList.h"
 #import "YZTagButton.h"
 
+#define Screen_Width [UIScreen mainScreen].bounds.size.width
+
 CGFloat const imageViewWH = 20;
 
 @interface YZTagList ()
@@ -129,6 +131,7 @@ CGFloat const imageViewWH = 20;
     [tagButton setBackgroundColor:_tagBackgroundColor];
     [tagButton setBackgroundImage:_tagBackgroundImage forState:UIControlStateNormal];
     tagButton.titleLabel.font = _tagFont;
+    tagButton.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     [tagButton addTarget:self action:@selector(clickTag:) forControlEvents:UIControlEventTouchUpInside];
     if (_isSort) {
         // 添加拖动手势
@@ -160,12 +163,37 @@ CGFloat const imageViewWH = 20;
 // 点击标签
 - (void)clickTag:(UIButton *)button
 {
-    
-    if (_clickTagBlock) {
-        _clickTagBlock(button.currentTitle);
+    if (button.selected) {
+        //已选中：设置为取消选中状态
+        button.layer.borderColor = self.borderColor.CGColor;
+        button.layer.borderWidth = self.borderWidth;
+        [button setBackgroundColor:self.tagBackgroundColor];
+        [button setTitleColor:self.tagColor forState:UIControlStateNormal];
+        if (_clickTagBlock) {
+            _clickTagBlock(button.currentTitle, 0);
+        }
+    }else{
+        for (int i = 0; i < self.tagButtons.count; i++) {
+            UIButton *btn = self.tagButtons[i];
+            if (btn == button) {
+                button.layer.borderColor = self.borderColorSel.CGColor;
+                button.layer.borderWidth = self.borderWidthSel;
+                [button setBackgroundColor:self.tagBackgroundColorSel];
+                [button setTitleColor:self.tagColorSel forState:UIControlStateNormal];
+                if (_clickTagBlock) {
+                    _clickTagBlock(button.currentTitle, i);
+                }
+            }else{
+                btn.layer.borderColor = self.borderColor.CGColor;
+                btn.layer.borderWidth = self.borderWidth;
+                [btn setBackgroundColor:self.tagBackgroundColor];
+                [btn setTitleColor:self.tagColor forState:UIControlStateNormal];
+                btn.selected = NO;
+            }
+        }
     }
+    button.selected = !button.selected;
 }
-
 // 拖动标签
 - (void)pan:(UIPanGestureRecognizer *)pan
 {
@@ -178,7 +206,7 @@ CGFloat const imageViewWH = 20;
     if (pan.state == UIGestureRecognizerStateBegan) {
         _oriCenter = tagButton.center;
         [UIView animateWithDuration:-.25 animations:^{
-            tagButton.transform = CGAffineTransformMakeScale(_scaleTagInSort, _scaleTagInSort);
+            tagButton.transform = CGAffineTransformMakeScale(self->_scaleTagInSort,self-> _scaleTagInSort);
         }];
         [self addSubview:tagButton];
     }
@@ -265,6 +293,35 @@ CGFloat const imageViewWH = 20;
     return nil;
 }
 
+// 删除所有标签
+- (void)deleteAllTags
+{
+    // 移除所有button
+    [self removeAllSubviews];
+    // 移除数组
+    [self.tagButtons removeAllObjects];
+    
+    // 移除字典
+    [self.tags removeAllObjects];
+    
+    // 移除数组
+    [self.tagArray removeAllObjects];
+    // 更新自己的frame
+    if (_isFitTagListH) {
+        CGRect frame = self.frame;
+        frame.size.height = self.tagListH;
+        [UIView animateWithDuration:0.25 animations:^{
+            self.frame = frame;
+        }];
+    }
+
+}
+- (void)removeAllSubviews {
+    //[self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    while (self.subviews.count) {
+        [self.subviews.lastObject removeFromSuperview];
+    }
+}
 // 删除标签
 - (void)deleteTag:(NSString *)tagStr
 {
@@ -409,7 +466,9 @@ CGFloat const imageViewWH = 20;
         btnX = _tagMargin;
         btnY = CGRectGetMaxY(preButton.frame) + _tagMargin;
     }
-    
+    if (btnW > Screen_Width - 20*2) {
+        btnW = Screen_Width - 20*2;
+    }
     tagButton.frame = CGRectMake(btnX, btnY, btnW, btnH);
 }
 
